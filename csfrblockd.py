@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 """
-counterblockd server
+csfrblockd server
 """
 
 #import before importing other modules
@@ -199,9 +199,9 @@ if __name__ == '__main__':
         config.MONGODB_DATABASE = configfile.get('Default', 'mongodb-database')
     else:
         if config.TESTNET:
-            config.MONGODB_DATABASE = 'counterblockd_testnet'
+            config.MONGODB_DATABASE = 'csfrblockd_testnet'
         else:
-            config.MONGODB_DATABASE = 'counterblockd'
+            config.MONGODB_DATABASE = 'csfrblockd'
 
     # mongodb user
     if args.mongodb_user:
@@ -479,7 +479,7 @@ if __name__ == '__main__':
     tx_logger.addHandler(tx_fileh)
     tx_logger.propagate = False
     
-    logging.info("counterblock Version %s starting ..." % config.VERSION)
+    logging.info("csfrblock Version %s starting ..." % config.VERSION)
     
     #Load in counterwallet config settings
     #TODO: Hardcode in cw path for now. Will be taken out to a plugin shortly...

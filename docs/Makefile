@@ -86,7 +86,7 @@ devhelp:
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/counterblockd"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/csfrblockd"
 	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/csfrblockd"
 	@echo "# devhelp"
 

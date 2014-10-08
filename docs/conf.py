@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# counterblockd documentation build configuration file, created by
+# csfrblockd documentation build configuration file, created by
 # sphinx-quickstart on Mon Jan 20 01:01:29 2014.
 #
 # This file is execfile()d with the current directory set to its containing dir.

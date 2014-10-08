@@ -36,7 +36,7 @@ D = decimal.Decimal
 def serve_api(mongo_db, redis_client):
     # Preferneces are just JSON objects... since we don't force a specific form to the wallet on
     # the server side, this makes it easier for 3rd party wallets (i.e. not Counterwallet) to fully be able to
-    # use counterblockd to not only pull useful data, but also load and store their own preferences, containing
+    # use csfrblockd to not only pull useful data, but also load and store their own preferences, containing
     # whatever data they need
     
     DEFAULT_COUNTERPARTYD_API_CACHE_PERIOD = 60 #in seconds
@@ -1531,7 +1531,7 @@ def serve_api(mongo_db, redis_client):
             cpd_result_valid = False
         cpd_e = time.time()
 
-        #"ping" counterblockd to test, as well
+        #"ping" csfrblockd to test, as well
         cbd_s = time.time()
         cbd_result_valid = True
         cbd_result_error_code = None
