@@ -35,11 +35,11 @@ D = decimal.Decimal
 
 def serve_api(mongo_db, redis_client):
     # Preferneces are just JSON objects... since we don't force a specific form to the wallet on
-    # the server side, this makes it easier for 3rd party wallets (i.e. not Counterwallet) to fully be able to
+    # the server side, this makes it easier for 3rd party wallets (i.e. not cSFRwallet) to fully be able to
     # use csfrblockd to not only pull useful data, but also load and store their own preferences, containing
     # whatever data they need
     
-    DEFAULT_COUNTERPARTYD_API_CACHE_PERIOD = 60 #in seconds
+    DEFAULT_CSFRD_API_CACHE_PERIOD = 60 #in seconds
     app = flask.Flask(__name__)
     tx_logger = logging.getLogger("transaction_log") #get transaction logger
     
@@ -132,7 +132,7 @@ def serve_api(mongo_db, redis_client):
     @dispatcher.add_method
     def get_normalized_balances(addresses):
         """
-        This call augments counterpartyd's get_balances with a normalized_quantity field. It also will include any owned
+        This call augments csfrd's get_balances with a normalized_quantity field. It also will include any owned
         assets for an address, even if their balance is zero. 
         NOTE: Does not retrieve BTC balance. Use get_address_info for that.
         """
@@ -382,7 +382,7 @@ def serve_api(mongo_db, redis_client):
             start_dt=datetime.datetime.utcfromtimestamp(start_ts),
             end_dt=datetime.datetime.utcfromtimestamp(end_ts) if now_ts != end_ts else None)
         
-        #make API call to counterpartyd to get all of the data for the specified address
+        #make API call to csfrd to get all of the data for the specified address
         txns = []
         d = _get_address_history(address, start_block=start_block_index, end_block=end_block_index)
         #mash it all together
@@ -1349,7 +1349,7 @@ def serve_api(mongo_db, redis_client):
         if result is None: #cache miss or cache disabled
             result = util.call_jsonrpc_api(method, params)
             if redis_client: #cache miss
-                redis_client.setex(cache_key, DEFAULT_COUNTERPARTYD_API_CACHE_PERIOD, json.dumps(result))
+                redis_client.setex(cache_key, DEFAULT_CSFRD_API_CACHE_PERIOD, json.dumps(result))
                 #^TODO: we may want to have different cache periods for different types of data
         
         if 'error' in result:
@@ -1522,7 +1522,7 @@ def serve_api(mongo_db, redis_client):
             tx_logger.info("***CSP SECURITY --- %s" % data_json)
             return flask.Response('', 200)
         
-        #"ping" counterpartyd to test
+        #"ping" csfrd to test
         cpd_s = time.time()
         cpd_result_valid = True
         try:

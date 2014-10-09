@@ -217,7 +217,7 @@ Asset Functions
 
 .. function:: get_normalized_balances(addresses)
 
-  This call augments counterpartyd's get_balances with a normalized_quantity field. It also will include any owned assets for an address, even if their balance is zero. NOTE: Does not retrieve BTC balance. Use get_address_info for that.
+  This call augments csfrd's get_balances with a normalized_quantity field. It also will include any owned assets for an address, even if their balance is zero. NOTE: Does not retrieve BTC balance. Use get_address_info for that.
 
   :param list addresses: List of addresses to check
   :return: List
@@ -497,7 +497,7 @@ Message Functions
 
 .. function:: get_messagefeed_messages_by_index(message_indexes)
 
-  Alias for counterpartyd get_messages_by_index
+  Alias for csfrd get_messages_by_index
 
   :param list message_indexs: Message IDs to fetch
             :return: A list of messages
@@ -600,9 +600,9 @@ Action/Write API Function Reference
 
 .. function:: cancel_btc_open_order(wallet_id, order_tx_hash)
 
-.. function:: proxy_to_counterpartyd(method='', params=[])
+.. function:: proxy_to_csfrd(method='', params=[])
 
-  It's APInception. Relays a request to the counterpartyd server, with the given method and params, and returns the result. See the counterpartyd API documentation for available methods.
+  It's APInception. Relays a request to the csfrd server, with the given method and params, and returns the result. See the csfrd API documentation for available methods.
 
 .. function:: record_btc_open_order(wallet_id, order_tx_hash)
 

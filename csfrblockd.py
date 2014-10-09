@@ -111,48 +111,48 @@ if __name__ == '__main__':
     ##############
     # THINGS WE CONNECT TO
 
-    # counterpartyd RPC host
+    # csfrd RPC host
     if args.csfrd_rpc_connect:
-        config.COUNTERPARTYD_RPC_CONNECT = args.csfrd_rpc_connect
+        config.CSFRD_RPC_CONNECT = args.csfrd_rpc_connect
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-connect') and configfile.get('Default', 'csfrd-rpc-connect'):
-        config.COUNTERPARTYD_RPC_CONNECT = configfile.get('Default', 'csfrd-rpc-connect')
+        config.CSFRD_RPC_CONNECT = configfile.get('Default', 'csfrd-rpc-connect')
     else:
-        config.COUNTERPARTYD_RPC_CONNECT = 'localhost'
+        config.CSFRD_RPC_CONNECT = 'localhost'
 
-    # counterpartyd RPC port
+    # csfrd RPC port
     if args.csfrd_rpc_port:
-        config.COUNTERPARTYD_RPC_PORT = args.csfrd_rpc_port
+        config.CSFRD_RPC_PORT = args.csfrd_rpc_port
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-port') and configfile.get('Default', 'csfrd-rpc-port'):
-        config.COUNTERPARTYD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
+        config.CSFRD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
     else:
         if config.TESTNET:
-            config.COUNTERPARTYD_RPC_PORT = 49710
+            config.CSFRD_RPC_PORT = 49710
         else:
-            config.COUNTERPARTYD_RPC_PORT = 39710
+            config.CSFRD_RPC_PORT = 39710
     try:
-        config.COUNTERPARTYD_RPC_PORT = int(config.COUNTERPARTYD_RPC_PORT)
-        assert int(config.COUNTERPARTYD_RPC_PORT) > 1 and int(config.COUNTERPARTYD_RPC_PORT) < 65535
+        config.CSFRD_RPC_PORT = int(config.CSFRD_RPC_PORT)
+        assert int(config.CSFRD_RPC_PORT) > 1 and int(config.CSFRD_RPC_PORT) < 65535
     except:
         raise Exception("Please specific a valid port number csfrd-rpc-port configuration parameter")
 
-    # counterpartyd RPC user
+    # csfrd RPC user
     if args.csfrd_rpc_user:
-        config.COUNTERPARTYD_RPC_USER = args.csfrd_rpc_user
+        config.CSFRD_RPC_USER = args.csfrd_rpc_user
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-user') and configfile.get('Default', 'csfrd-rpc-user'):
-        config.COUNTERPARTYD_RPC_USER = configfile.get('Default', 'csfrd-rpc-user')
+        config.CSFRD_RPC_USER = configfile.get('Default', 'csfrd-rpc-user')
     else:
-        config.COUNTERPARTYD_RPC_USER = 'rpcuser'
+        config.CSFRD_RPC_USER = 'rpcuser'
 
-    # counterpartyd RPC password
+    # csfrd RPC password
     if args.csfrd_rpc_password:
-        config.COUNTERPARTYD_RPC_PASSWORD = args.csfrd_rpc_password
+        config.CSFRD_RPC_PASSWORD = args.csfrd_rpc_password
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-password') and configfile.get('Default', 'csfrd-rpc-password'):
-        config.COUNTERPARTYD_RPC_PASSWORD = configfile.get('Default', 'csfrd-rpc-password')
+        config.CSFRD_RPC_PASSWORD = configfile.get('Default', 'csfrd-rpc-password')
     else:
-        config.COUNTERPARTYD_RPC_PASSWORD = 'rpcpassword'
+        config.CSFRD_RPC_PASSWORD = 'rpcpassword'
 
-    config.COUNTERPARTYD_RPC = 'http://' + config.COUNTERPARTYD_RPC_CONNECT + ':' + str(config.COUNTERPARTYD_RPC_PORT) + '/api/'
-    config.COUNTERPARTYD_AUTH = (config.COUNTERPARTYD_RPC_USER, config.COUNTERPARTYD_RPC_PASSWORD) if (config.COUNTERPARTYD_RPC_USER and config.COUNTERPARTYD_RPC_PASSWORD) else None
+    config.CSFRD_RPC = 'http://' + config.CSFRD_RPC_CONNECT + ':' + str(config.CSFRD_RPC_PORT) + '/api/'
+    config.CSFRD_AUTH = (config.CSFRD_RPC_USER, config.CSFRD_RPC_PASSWORD) if (config.CSFRD_RPC_USER and config.CSFRD_RPC_PASSWORD) else None
 
     # blockchain service name
     if args.blockchain_service_name:
@@ -425,11 +425,11 @@ if __name__ == '__main__':
         config.EMAIL_SERVER = "localhost"
 
     # current dir
-    config.COUNTERBLOCKD_DIR = os.path.dirname(os.path.realpath(__file__))
+    config.CSFRBLOCKD_DIR = os.path.dirname(os.path.realpath(__file__))
 
     # initialize json schema for json asset and feed validation
-    config.ASSET_SCHEMA = json.load(open(os.path.join(config.COUNTERBLOCKD_DIR, 'schemas', 'asset.schema.json')))
-    config.FEED_SCHEMA = json.load(open(os.path.join(config.COUNTERBLOCKD_DIR, 'schemas', 'feed.schema.json')))
+    config.ASSET_SCHEMA = json.load(open(os.path.join(config.CSFRBLOCKD_DIR, 'schemas', 'asset.schema.json')))
+    config.FEED_SCHEMA = json.load(open(os.path.join(config.CSFRBLOCKD_DIR, 'schemas', 'feed.schema.json')))
 
     #Create/update pid file
     pid = str(os.getpid())
@@ -481,18 +481,18 @@ if __name__ == '__main__':
     
     logging.info("csfrblock Version %s starting ..." % config.VERSION)
     
-    #Load in counterwallet config settings
+    #Load in csfrwallet config settings
     #TODO: Hardcode in cw path for now. Will be taken out to a plugin shortly...
-    counterwallet_config_path = os.path.join('/home/sfr/csfrwallet/csfrwallet.conf.json')
-    if os.path.exists(counterwallet_config_path):
-        logging.info("Loading csfrwallet config at '%s'" % counterwallet_config_path)
-        with open(counterwallet_config_path) as f:
-            config.COUNTERWALLET_CONFIG_JSON = f.read()
+    csfrwallet_config_path = os.path.join('/home/sfr/csfrwallet/csfrwallet.conf.json')
+    if os.path.exists(csfrwallet_config_path):
+        logging.info("Loading csfrwallet config at '%s'" % csfrwallet_config_path)
+        with open(csfrwallet_config_path) as f:
+            config.CSFRWALLET_CONFIG_JSON = f.read()
     else:
-        logging.warn("cSFR config does not exist at '%s'" % counterwallet_config_path)
-        config.COUNTERWALLET_CONFIG_JSON = '{}'
+        logging.warn("cSFR config does not exist at '%s'" % csfrwallet_config_path)
+        config.CSFRWALLET_CONFIG_JSON = '{}'
     try:
-        config.COUNTERWALLET_CONFIG = json.loads(config.COUNTERWALLET_CONFIG_JSON)
+        config.CSFRWALLET_CONFIG = json.loads(config.CSFRWALLET_CONFIG_JSON)
     except Exception, e:
         logging.error("Exception loading csfrwallet config: %s" % e)
     

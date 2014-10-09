@@ -1,5 +1,5 @@
 """
-blockfeed: sync with and process new blocks from counterpartyd
+blockfeed: sync with and process new blocks from csfrd
 """
 import re
 import os
@@ -41,7 +41,7 @@ def process_cpd_blockfeed(zmq_publisher_eventfeed):
         
         #create/update default app_config object
         mongo_db.app_config.update({}, {
-        'db_version': config.DB_VERSION, #counterblockd database version
+        'db_version': config.DB_VERSION, #csfrblockd database version
         'running_testnet': config.TESTNET,
         'csfrd_db_version_major': None,
         'csfrd_db_version_minor': None,
@@ -176,7 +176,7 @@ def process_cpd_blockfeed(zmq_publisher_eventfeed):
         app_config = app_config[0]
         #get the last processed block out of mongo
         my_latest_block = mongo_db.processed_blocks.find_one(sort=[("block_index", pymongo.DESCENDING)]) or LATEST_BLOCK_INIT
-        #remove any data we have for blocks higher than this (would happen if counterblockd or mongo died
+        #remove any data we have for blocks higher than this (would happen if csfrblockd or mongo died
         # or errored out while processing a block)
         my_latest_block = prune_my_stale_blocks(my_latest_block['block_index'])
 
@@ -478,7 +478,7 @@ def process_cpd_blockfeed(zmq_publisher_eventfeed):
             #...we may be caught up (to csfrd), but csfrd may not be (to the blockchain). And if it isn't, we aren't
             config.CAUGHT_UP = running_info['db_caught_up']
             
-            #this logic here will cover a case where we shut down counterblockd, then start it up again quickly...
+            #this logic here will cover a case where we shut down csfrblockd, then start it up again quickly...
             # in that case, there are no new blocks for it to parse, so LAST_MESSAGE_INDEX would otherwise remain 0.
             # With this logic, we will correctly initialize LAST_MESSAGE_INDEX to the last message ID of the last processed block
             if config.LAST_MESSAGE_INDEX == -1 or config.CURRENT_BLOCK_INDEX == 0:
@@ -504,4 +504,4 @@ def process_cpd_blockfeed(zmq_publisher_eventfeed):
                 config.CAUGHT_UP_STARTED_EVENTS = True
 
             publish_mempool_tx()
-            time.sleep(2) #counterblockd itself is at least caught up, wait a bit to query again for the latest block from cpd
+            time.sleep(2) #csfrblockd itself is at least caught up, wait a bit to query again for the latest block from cpd
