@@ -483,7 +483,7 @@ if __name__ == '__main__':
     
     #Load in csfrwallet config settings
     #TODO: Hardcode in cw path for now. Will be taken out to a plugin shortly...
-    csfrwallet_config_path = os.path.join('/home/sfr/csfrwallet/csfrwallet.conf.json')
+    csfrwallet_config_path = os.path.join('/home/csfr/csfrwallet/csfrwallet.conf.json')
     if os.path.exists(csfrwallet_config_path):
         logging.info("Loading csfrwallet config at '%s'" % csfrwallet_config_path)
         with open(csfrwallet_config_path) as f:
