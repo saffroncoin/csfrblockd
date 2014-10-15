@@ -1,5 +1,5 @@
 '''
-http://explorer.saffroncoin.com/
+http://insight.bitpay.com/
 '''
 import logging
 

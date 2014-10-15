@@ -33,12 +33,12 @@ from lib import (config, api, events, blockfeed, siofeeds, util)
 
 if __name__ == '__main__':
     # Parse command-line arguments.
-    parser = argparse.ArgumentParser(prog='csfrd', description='SFRDirect daemon. Works with csfrd')
-    parser.add_argument('-V', '--version', action='version', version="cleablockd v%s" % config.VERSION)
+    parser = argparse.ArgumentParser(prog='csfrblockd', description='SFRDirect Wallet daemon. Works with csfrd')
+    parser.add_argument('-V', '--version', action='version', version="csfrblockd v%s" % config.VERSION)
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False, help='sets log level to DEBUG instead of WARNING')
 
     parser.add_argument('--reparse', action='store_true', default=False, help='force full re-initialization of the csfrblockd database')
-    parser.add_argument('--testnet', action='store_true', default=False, help='use Saffroncoin testnet addresses and block numbers')
+    parser.add_argument('--testnet', action='store_true', default=False, help='use Bitcoin testnet addresses and block numbers')
     parser.add_argument('--data-dir', help='specify to explicitly override the directory in which to keep the config file and log file')
     parser.add_argument('--config-file', help='the location of the configuration file')
     parser.add_argument('--log-file', help='the location of the log file')
@@ -66,6 +66,9 @@ if __name__ == '__main__':
     parser.add_argument('--redis-database', type=int, help='the redis database ID (int) used to connect to the redis server for caching (if enabled)')
 
     parser.add_argument('--armory-utxsvr-enable', help='enable use of armory_utxsvr service (for signing offline armory txns')
+
+    #Vending machine provider
+    parser.add_argument('--vending-machine-provider', help='JSON url containing vending machines list')
 
     #THINGS WE HOST
     parser.add_argument('--rpc-host', help='the IP of the interface to bind to for providing JSON-RPC API access (0.0.0.0 for all interfaces)')
@@ -104,55 +107,55 @@ if __name__ == '__main__':
         config.TESTNET = configfile.getboolean('Default', 'testnet')
     else:
         config.TESTNET = False
-
+        
     # reparse
     config.REPARSE_FORCED = args.reparse
-
+        
     ##############
     # THINGS WE CONNECT TO
 
     # csfrd RPC host
-    if args.csfrd_rpc_connect:
-        config.CSFRD_RPC_CONNECT = args.csfrd_rpc_connect
+    if args.counterpartyd_rpc_connect:
+        config.COUNTERPARTYD_RPC_CONNECT = args.counterpartyd_rpc_connect
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-connect') and configfile.get('Default', 'csfrd-rpc-connect'):
-        config.CSFRD_RPC_CONNECT = configfile.get('Default', 'csfrd-rpc-connect')
+        config.COUNTERPARTYD_RPC_CONNECT = configfile.get('Default', 'csfrd-rpc-connect')
     else:
-        config.CSFRD_RPC_CONNECT = 'localhost'
+        config.COUNTERPARTYD_RPC_CONNECT = 'localhost'
 
     # csfrd RPC port
-    if args.csfrd_rpc_port:
-        config.CSFRD_RPC_PORT = args.csfrd_rpc_port
+    if args.counterpartyd_rpc_port:
+        config.COUNTERPARTYD_RPC_PORT = args.counterpartyd_rpc_port
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-port') and configfile.get('Default', 'csfrd-rpc-port'):
-        config.CSFRD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
+        config.COUNTERPARTYD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
     else:
         if config.TESTNET:
-            config.CSFRD_RPC_PORT = 49710
+            config.COUNTERPARTYD_RPC_PORT = 14000
         else:
-            config.CSFRD_RPC_PORT = 39710
+            config.COUNTERPARTYD_RPC_PORT = 4000
     try:
-        config.CSFRD_RPC_PORT = int(config.CSFRD_RPC_PORT)
-        assert int(config.CSFRD_RPC_PORT) > 1 and int(config.CSFRD_RPC_PORT) < 65535
+        config.COUNTERPARTYD_RPC_PORT = int(config.COUNTERPARTYD_RPC_PORT)
+        assert int(config.COUNTERPARTYD_RPC_PORT) > 1 and int(config.COUNTERPARTYD_RPC_PORT) < 65535
     except:
         raise Exception("Please specific a valid port number csfrd-rpc-port configuration parameter")
-
-    # csfrd RPC user
-    if args.csfrd_rpc_user:
-        config.CSFRD_RPC_USER = args.csfrd_rpc_user
+            
+    # counterpartyd RPC user
+    if args.counterpartyd_rpc_user:
+        config.COUNTERPARTYD_RPC_USER = args.counterpartyd_rpc_user
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-user') and configfile.get('Default', 'csfrd-rpc-user'):
-        config.CSFRD_RPC_USER = configfile.get('Default', 'csfrd-rpc-user')
+        config.COUNTERPARTYD_RPC_USER = configfile.get('Default', 'csfrd-rpc-user')
     else:
-        config.CSFRD_RPC_USER = 'rpcuser'
+        config.COUNTERPARTYD_RPC_USER = 'rpcuser'
 
-    # csfrd RPC password
-    if args.csfrd_rpc_password:
-        config.CSFRD_RPC_PASSWORD = args.csfrd_rpc_password
+    # counterpartyd RPC password
+    if args.counterpartyd_rpc_password:
+        config.COUNTERPARTYD_RPC_PASSWORD = args.counterpartyd_rpc_password
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-password') and configfile.get('Default', 'csfrd-rpc-password'):
-        config.CSFRD_RPC_PASSWORD = configfile.get('Default', 'csfrd-rpc-password')
+        config.COUNTERPARTYD_RPC_PASSWORD = configfile.get('Default', 'csfrd-rpc-password')
     else:
-        config.CSFRD_RPC_PASSWORD = 'rpcpassword'
+        config.COUNTERPARTYD_RPC_PASSWORD = 'rpcpassword'
 
-    config.CSFRD_RPC = 'http://' + config.CSFRD_RPC_CONNECT + ':' + str(config.CSFRD_RPC_PORT) + '/api/'
-    config.CSFRD_AUTH = (config.CSFRD_RPC_USER, config.CSFRD_RPC_PASSWORD) if (config.CSFRD_RPC_USER and config.CSFRD_RPC_PASSWORD) else None
+    config.COUNTERPARTYD_RPC = 'http://' + config.COUNTERPARTYD_RPC_CONNECT + ':' + str(config.COUNTERPARTYD_RPC_PORT) + '/api/'
+    config.COUNTERPARTYD_AUTH = (config.COUNTERPARTYD_RPC_USER, config.COUNTERPARTYD_RPC_PASSWORD) if (config.COUNTERPARTYD_RPC_USER and config.COUNTERPARTYD_RPC_PASSWORD) else None
 
     # blockchain service name
     if args.blockchain_service_name:
@@ -191,7 +194,7 @@ if __name__ == '__main__':
         assert int(config.MONGODB_PORT) > 1 and int(config.MONGODB_PORT) < 65535
     except:
         raise Exception("Please specific a valid port number mongodb-port configuration parameter")
-
+            
     # mongodb database
     if args.mongodb_database:
         config.MONGODB_DATABASE = args.mongodb_database
@@ -272,10 +275,16 @@ if __name__ == '__main__':
     else:
         config.ARMORY_UTXSVR_ENABLE = False
 
+    if args.vending_machine_provider:
+        config.VENDING_MACHINE_PROVIDER = args.vending_machine_provider
+    elif has_config and configfile.has_option('Default', 'vending-machine-provider') and configfile.get('Default', 'vending-machine-provider'):
+        config.VENDING_MACHINE_PROVIDER = configfile.get('Default', 'vending-machine-provider')
+    else:
+        config.VENDING_MACHINE_PROVIDER = None
 
     ##############
     # THINGS WE SERVE
-
+    
     # RPC host
     if args.rpc_host:
         config.RPC_HOST = args.rpc_host
@@ -291,9 +300,9 @@ if __name__ == '__main__':
         config.RPC_PORT = configfile.get('Default', 'rpc-port')
     else:
         if config.TESTNET:
-            config.RPC_PORT = 17310
+            config.RPC_PORT = 14100
         else:
-            config.RPC_PORT = 7310
+            config.RPC_PORT = 4100        
     try:
         config.RPC_PORT = int(config.RPC_PORT)
         assert int(config.RPC_PORT) > 1 and int(config.RPC_PORT) < 65535
@@ -323,9 +332,9 @@ if __name__ == '__main__':
         config.SOCKETIO_PORT = configfile.get('Default', 'socketio-port')
     else:
         if config.TESTNET:
-            config.SOCKETIO_PORT = 17311
+            config.SOCKETIO_PORT = 14101
         else:
-            config.SOCKETIO_PORT = 7311
+            config.SOCKETIO_PORT = 4101        
     try:
         config.SOCKETIO_PORT = int(config.SOCKETIO_PORT)
         assert int(config.SOCKETIO_PORT) > 1 and int(config.SOCKETIO_PORT) < 65535
@@ -347,9 +356,9 @@ if __name__ == '__main__':
         config.SOCKETIO_CHAT_PORT = configfile.get('Default', 'socketio-chat-port')
     else:
         if config.TESTNET:
-            config.SOCKETIO_CHAT_PORT = 17312
+            config.SOCKETIO_CHAT_PORT = 14102
         else:
-            config.SOCKETIO_CHAT_PORT = 7312
+            config.SOCKETIO_CHAT_PORT = 4102       
     try:
         config.SOCKETIO_CHAT_PORT = int(config.SOCKETIO_CHAT_PORT)
         assert int(config.SOCKETIO_CHAT_PORT) > 1 and int(config.SOCKETIO_CHAT_PORT) < 65535
@@ -362,9 +371,9 @@ if __name__ == '__main__':
 
     #More testnet
     if config.TESTNET:
-        config.BLOCK_FIRST = 73800
+        config.BLOCK_FIRST = 154908
     else:
-        config.BLOCK_FIRST = 86000
+        config.BLOCK_FIRST = 278270
 
     # Log
     if args.log_file:
@@ -373,14 +382,14 @@ if __name__ == '__main__':
         config.LOG = configfile.get('Default', 'log-file')
     else:
         config.LOG = os.path.join(config.DATA_DIR, 'csfrblockd.log')
-
+        
     if args.tx_log_file:
         config.TX_LOG = args.tx_log_file
     elif has_config and configfile.has_option('Default', 'tx-log-file'):
         config.TX_LOG = configfile.get('Default', 'tx-log-file')
     else:
         config.TX_LOG = os.path.join(config.DATA_DIR, 'csfrblockd-tx.log')
-
+    
 
     # PID
     if args.pid_file:
@@ -404,7 +413,7 @@ if __name__ == '__main__':
         config.ROLLBAR_ENV = configfile.get('Default', 'rollbar-env')
     else:
         config.ROLLBAR_ENV = 'csfrblockd-production'
-
+        
     #support email
     if args.support_email:
         config.SUPPORT_EMAIL = args.support_email
@@ -425,28 +434,28 @@ if __name__ == '__main__':
         config.EMAIL_SERVER = "localhost"
 
     # current dir
-    config.CSFRBLOCKD_DIR = os.path.dirname(os.path.realpath(__file__))
+    config.COUNTERBLOCKD_DIR = os.path.dirname(os.path.realpath(__file__))
 
     # initialize json schema for json asset and feed validation
-    config.ASSET_SCHEMA = json.load(open(os.path.join(config.CSFRBLOCKD_DIR, 'schemas', 'asset.schema.json')))
-    config.FEED_SCHEMA = json.load(open(os.path.join(config.CSFRBLOCKD_DIR, 'schemas', 'feed.schema.json')))
+    config.ASSET_SCHEMA = json.load(open(os.path.join(config.COUNTERBLOCKD_DIR, 'schemas', 'asset.schema.json')))
+    config.FEED_SCHEMA = json.load(open(os.path.join(config.COUNTERBLOCKD_DIR, 'schemas', 'feed.schema.json')))
 
     #Create/update pid file
     pid = str(os.getpid())
     pidf = open(config.PID, 'w')
     pidf.write(pid)
-    pidf.close()
+    pidf.close()    
 
     # Logging (to file and console).
     MAX_LOG_SIZE = 20 * 1024 * 1024 #max log size of 20 MB before rotation (make configurable later)
     MAX_LOG_COUNT = 5
     logger = logging.getLogger() #get root logger
     logger.setLevel(logging.DEBUG if args.verbose else logging.INFO)
-
+    
     #Color logging on console for warnings and errors
     logging.addLevelName( logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
     logging.addLevelName( logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
-
+    
     #Console logging
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG if args.verbose else logging.INFO)
@@ -483,16 +492,16 @@ if __name__ == '__main__':
     
     #Load in csfrwallet config settings
     #TODO: Hardcode in cw path for now. Will be taken out to a plugin shortly...
-    csfrwallet_config_path = os.path.join('/home/csfr/csfrwallet/csfrwallet.conf.json')
-    if os.path.exists(csfrwallet_config_path):
-        logging.info("Loading csfrwallet config at '%s'" % csfrwallet_config_path)
-        with open(csfrwallet_config_path) as f:
-            config.CSFRWALLET_CONFIG_JSON = f.read()
+    counterwallet_config_path = os.path.join('/home/csfr/csfrwallet/csfrwallet.conf.json')
+    if os.path.exists(counterwallet_config_path):
+        logging.info("Loading csfrwallet config at '%s'" % counterwallet_config_path)
+        with open(counterwallet_config_path) as f:
+            config.COUNTERWALLET_CONFIG_JSON = f.read()
     else:
-        logging.warn("cSFR config does not exist at '%s'" % csfrwallet_config_path)
-        config.CSFRWALLET_CONFIG_JSON = '{}'
+        logging.warn("SFRDirect Wallet config does not exist at '%s'" % counterwallet_config_path)
+        config.COUNTERWALLET_CONFIG_JSON = '{}'
     try:
-        config.CSFRWALLET_CONFIG = json.loads(config.CSFRWALLET_CONFIG_JSON)
+        config.COUNTERWALLET_CONFIG = json.loads(config.COUNTERWALLET_CONFIG_JSON)
     except Exception, e:
         logging.error("Exception loading csfrwallet config: %s" % e)
     
@@ -501,7 +510,7 @@ if __name__ == '__main__':
     #if config.ROLLBAR_TOKEN:
     #    logging.info("Rollbar support enabled. Logging for environment: %s" % config.ROLLBAR_ENV)
     #    rollbar.init(config.ROLLBAR_TOKEN, config.ROLLBAR_ENV, allow_logging_basic_config=False)
-    #
+    #    
     #    def report_errors(ex_cls, ex, tb):
     #        rollbar.report_exc_info((ex_cls, ex, tb))
     #        raise ex #re-raise
@@ -586,7 +595,7 @@ if __name__ == '__main__':
         ("when", pymongo.ASCENDING),
         ("network", pymongo.ASCENDING),
     ])
-
+    
     ##COLLECTIONS THAT ARE *NOT* PURGED AS A RESULT OF A REPARSE
     #preferences
     mongo_db.preferences.ensure_index('wallet_id', unique=True)
@@ -622,7 +631,7 @@ if __name__ == '__main__':
         redis_client = redis.StrictRedis(host=config.REDIS_CONNECT, port=config.REDIS_PORT, db=config.REDIS_DATABASE)
     else:
         redis_client = None
-
+    
     #set up zeromq publisher for sending out received events to connected socket.io clients
     zmq_context = zmq.Context()
     zmq_publisher_eventfeed = zmq_context.socket(zmq.PUB)
@@ -657,7 +666,7 @@ if __name__ == '__main__':
 
     logging.info("Starting up RPC API handler...")
     api.serve_api(mongo_db, redis_client)
-
+    
     #print some user friendly startup warnings as need be
     if not config.SUPPORT_EMAIL:
         logging.warn("Support email setting not set: To enable, please specify an email for the 'support-email' setting in your csfrblockd.conf")

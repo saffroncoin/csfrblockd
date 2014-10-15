@@ -35,11 +35,11 @@ D = decimal.Decimal
 
 def serve_api(mongo_db, redis_client):
     # Preferneces are just JSON objects... since we don't force a specific form to the wallet on
-    # the server side, this makes it easier for 3rd party wallets (i.e. not cSFRwallet) to fully be able to
-    # use csfrblockd to not only pull useful data, but also load and store their own preferences, containing
+    # the server side, this makes it easier for 3rd party wallets (i.e. not Counterwallet) to fully be able to
+    # use counterblockd to not only pull useful data, but also load and store their own preferences, containing
     # whatever data they need
     
-    DEFAULT_CSFRD_API_CACHE_PERIOD = 60 #in seconds
+    DEFAULT_COUNTERPARTYD_API_CACHE_PERIOD = 60 #in seconds
     app = flask.Flask(__name__)
     tx_logger = logging.getLogger("transaction_log") #get transaction logger
     
@@ -59,7 +59,8 @@ def serve_api(mongo_db, redis_client):
             'testnet': config.TESTNET,
             'ip': ip,
             'country': country,
-            'quote_assets': config.QUOTE_ASSETS
+            'quote_assets': config.QUOTE_ASSETS,
+            'quick_buy_enable': True if config.VENDING_MACHINE_PROVIDER is not None else False
         }
     
     @dispatcher.add_method
@@ -83,6 +84,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def get_chain_block_height():
+        #DEPRECATED 1.5
         data = blockchain.getinfo()
         return data['info']['blocks']
 
@@ -132,9 +134,9 @@ def serve_api(mongo_db, redis_client):
     @dispatcher.add_method
     def get_normalized_balances(addresses):
         """
-        This call augments csfrd's get_balances with a normalized_quantity field. It also will include any owned
+        This call augments counterpartyd's get_balances with a normalized_quantity field. It also will include any owned
         assets for an address, even if their balance is zero. 
-        NOTE: Does not retrieve BTC balance. Use get_address_info for that.
+        NOTE: Does not retrieve SFR balance. Use get_address_info for that.
         """
         if not isinstance(addresses, list):
             raise Exception("addresses must be a list of addresses, even if it just contains one address")
@@ -382,7 +384,7 @@ def serve_api(mongo_db, redis_client):
             start_dt=datetime.datetime.utcfromtimestamp(start_ts),
             end_dt=datetime.datetime.utcfromtimestamp(end_ts) if now_ts != end_ts else None)
         
-        #make API call to csfrd to get all of the data for the specified address
+        #make API call to counterpartyd to get all of the data for the specified address
         txns = []
         d = _get_address_history(address, start_block=start_block_index, end_block=end_block_index)
         #mash it all together
@@ -403,6 +405,7 @@ def serve_api(mongo_db, redis_client):
     def get_base_quote_asset(asset1, asset2):
         """Given two arbitrary assets, returns the base asset and the quote asset.
         """
+        #DEPRECATED 1.5
         base_asset, quote_asset = util.assets_to_asset_pair(asset1, asset2)
         base_asset_info = mongo_db.tracked_assets.find_one({'asset': base_asset})
         quote_asset_info = mongo_db.tracked_assets.find_one({'asset': quote_asset})
@@ -419,6 +422,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def get_market_price_summary(asset1, asset2, with_last_trades=0):
+        #DEPRECATED 1.5
         result = assets_trading.get_market_price_summary(asset1, asset2, with_last_trades)
         return result if result is not None else False
         #^ due to current bug in our jsonrpc stack, just return False if None is returned
@@ -493,7 +497,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def get_market_info_leaderboard(limit=100):
-        """returns market leaderboard data for both the XCP and BTC markets"""
+        """returns market leaderboard data for both the cSFR and SFR markets"""
         #do two queries because we limit by our sorted results, and we might miss an asset with a high BTC trading value
         # but with little or no XCP trading activity, for instance if we just did one query
         assets_market_info_xcp = list(mongo_db.asset_market_info.find({}, {'_id': 0}).sort('market_cap_in_{}'.format(config.XCP.lower()), pymongo.DESCENDING).limit(limit))
@@ -634,9 +638,9 @@ def serve_api(mongo_db, redis_client):
     ask_book_min_pct_fee_provided=None, ask_book_min_pct_fee_required=None, ask_book_max_pct_fee_required=None):
         """Gets the current order book for a specified asset pair
         
-        @param: normalized_fee_required: Only specify if buying BTC. If specified, the order book will be pruned down to only
+        @param: normalized_fee_required: Only specify if buying SFR. If specified, the order book will be pruned down to only
          show orders at and above this fee_required
-        @param: normalized_fee_provided: Only specify if selling BTC. If specified, the order book will be pruned down to only
+        @param: normalized_fee_provided: Only specify if selling SFR. If specified, the order book will be pruned down to only
          show orders at and above this fee_provided
         """
         base_asset_info = mongo_db.tracked_assets.find_one({'asset': base_asset})
@@ -804,6 +808,7 @@ def serve_api(mongo_db, redis_client):
     
     @dispatcher.add_method
     def get_order_book_simple(asset1, asset2, min_pct_fee_provided=None, max_pct_fee_required=None):
+        #DEPRECATED 1.5
         base_asset, quote_asset = util.assets_to_asset_pair(asset1, asset2)
         result = _get_order_book(base_asset, quote_asset,
             bid_book_min_pct_fee_provided=min_pct_fee_provided,
@@ -813,6 +818,7 @@ def serve_api(mongo_db, redis_client):
         return result
 
     @dispatcher.add_method
+        #DEPRECATED 1.5
     def get_order_book_buysell(buy_asset, sell_asset, pct_fee_provided=None, pct_fee_required=None):
         base_asset, quote_asset = util.assets_to_asset_pair(buy_asset, sell_asset)
         bid_book_min_pct_fee_provided = None
@@ -972,6 +978,7 @@ def serve_api(mongo_db, redis_client):
     def get_asset_pair_market_info(asset1=None, asset2=None, limit=50):
         """Given two arbitrary assets, returns the base asset and the quote asset.
         """
+        #DEPRECATED 1.5
         assert (asset1 and asset2) or (asset1 is None and asset2 is None)
         if asset1 and asset2:
             base_asset, quote_asset = util.assets_to_asset_pair(asset1, asset2)
@@ -1104,9 +1111,9 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def record_btc_open_order(wallet_id, order_tx_hash):
-        """Records an association between a wallet ID and order TX ID for a trade where BTC is being SOLD, to allow
-        buyers to see which sellers of the BTC are "online" (which can lead to a better result as a BTCpay will be required
-        to complete any trades where BTC is involved, and the seller (or at least their wallet) must be online for this to happen"""
+        """Records an association between a wallet ID and order TX ID for a trade where SFR is being SOLD, to allow
+        buyers to see which sellers of the SFR are "online" (which can lead to a better result as a SFRpay will be required
+        to complete any trades where SFR is involved, and the seller (or at least their wallet) must be online for this to happen"""
         #ensure the wallet_id exists
         result =  mongo_db.preferences.find_one({"wallet_id": wallet_id})
         if not result: raise Exception("WalletID does not exist")
@@ -1120,6 +1127,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def cancel_btc_open_order(wallet_id, order_tx_hash):
+        #DEPRECATED 1.5
         mongo_db.btc_open_orders.remove({'order_tx_hash': order_tx_hash, 'wallet_id': wallet_id})
         #^ wallet_id is used more for security here so random folks can't remove orders from this collection just by tx hash
         return True
@@ -1172,6 +1180,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def is_chat_handle_in_use(handle):
+        #DEPRECATED 1.5
         results = mongo_db.chat_handles.find({ 'handle': { '$regex': '^%s$' % handle, '$options': 'i' } })
         return True if results.count() else False 
 
@@ -1223,6 +1232,7 @@ def serve_api(mongo_db, redis_client):
 
     @dispatcher.add_method
     def get_chat_history(start_ts=None, end_ts=None, handle=None, limit=1000):
+        #DEPRECATED 1.5
         now_ts = time.mktime(datetime.datetime.utcnow().timetuple())
         if not end_ts: #default to current datetime
             end_ts = now_ts
@@ -1329,7 +1339,7 @@ def serve_api(mongo_db, redis_client):
         return True
     
     @dispatcher.add_method
-    def proxy_to_csfrd(method='', params=[]):
+    def proxy_to_counterpartyd(method='', params=[]):
         if method=='sql': raise Exception("Invalid method") 
         result = None
         cache_key = None
@@ -1349,7 +1359,7 @@ def serve_api(mongo_db, redis_client):
         if result is None: #cache miss or cache disabled
             result = util.call_jsonrpc_api(method, params)
             if redis_client: #cache miss
-                redis_client.setex(cache_key, DEFAULT_CSFRD_API_CACHE_PERIOD, json.dumps(result))
+                redis_client.setex(cache_key, DEFAULT_COUNTERPARTYD_API_CACHE_PERIOD, json.dumps(result))
                 #^TODO: we may want to have different cache periods for different types of data
         
         if 'error' in result:
@@ -1408,12 +1418,20 @@ def serve_api(mongo_db, redis_client):
         return dex.get_market_trades(asset1, asset2, addresses, limit)
 
     @dispatcher.add_method
-    def get_markets_list():
-        return dex.get_markets_list(mongo_db)
+    def get_markets_list(quote_asset = None, order_by=None):
+        return dex.get_markets_list(mongo_db, quote_asset=quote_asset, order_by=order_by)
 
     @dispatcher.add_method
     def get_market_details(asset1, asset2, min_fee_provided=0.95, max_fee_required=0.95):
         return dex.get_market_details(asset1, asset2, min_fee_provided, max_fee_required, mongo_db)
+
+    @dispatcher.add_method
+    def get_vennd_machine():
+        # https://gist.github.com/JahPowerBit/655bee2b35d9997ac0af
+        if config.VENDING_MACHINE_PROVIDER is not None:
+            return util.get_url(config.VENDING_MACHINE_PROVIDER)
+        else:
+            return []
     
     @dispatcher.add_method
     def get_pubkey_for_address(address):
@@ -1522,7 +1540,7 @@ def serve_api(mongo_db, redis_client):
             tx_logger.info("***CSP SECURITY --- %s" % data_json)
             return flask.Response('', 200)
         
-        #"ping" csfrd to test
+        #"ping" counterpartyd to test
         cpd_s = time.time()
         cpd_result_valid = True
         try:
@@ -1531,7 +1549,7 @@ def serve_api(mongo_db, redis_client):
             cpd_result_valid = False
         cpd_e = time.time()
 
-        #"ping" csfrblockd to test, as well
+        #"ping" counterblockd to test, as well
         cbd_s = time.time()
         cbd_result_valid = True
         cbd_result_error_code = None
@@ -1565,16 +1583,16 @@ def serve_api(mongo_db, redis_client):
             response_code = 500
         
         result = {
-            'csfrd': 'OK' if cpd_result_valid else 'NOT OK',
-            'csfrblockd': 'OK' if cbd_result_valid else 'NOT OK',
-            'csfrblockd_error': cbd_result_error_code,
-            'csfrd_ver': '%s.%s.%s' % (
+            'counterpartyd': 'OK' if cpd_result_valid else 'NOT OK',
+            'counterblockd': 'OK' if cbd_result_valid else 'NOT OK',
+            'counterblockd_error': cbd_result_error_code,
+            'counterpartyd_ver': '%s.%s.%s' % (
                 cpd_status['version_major'], cpd_status['version_minor'], cpd_status['version_revision']) if cpd_result_valid else '?',
-            'csfrblockd_ver': config.VERSION,
-            'csfrd_last_block': cpd_status['last_block'] if cpd_result_valid else '?',
-            'csfrd_last_message_index': cpd_status['last_message_index'] if cpd_result_valid else '?',
-            'csfrd_check_elapsed': cpd_e - cpd_s,
-            'csfrblockd_check_elapsed': cbd_e - cbd_s,
+            'counterblockd_ver': config.VERSION,
+            'counterpartyd_last_block': cpd_status['last_block'] if cpd_result_valid else '?',
+            'counterpartyd_last_message_index': cpd_status['last_message_index'] if cpd_result_valid else '?',
+            'counterpartyd_check_elapsed': cpd_e - cpd_s,
+            'counterblockd_check_elapsed': cbd_e - cbd_s,
             'local_online_users': len(siofeeds.onlineClients),
         }
         return flask.Response(json.dumps(result), response_code, mimetype='application/json')

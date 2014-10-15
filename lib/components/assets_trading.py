@@ -85,8 +85,8 @@ def calc_price_change(open, close):
 
 def get_price_primatives(start_dt=None, end_dt=None):
     mps_xcp_btc = get_market_price_summary(config.XCP, config.BTC, start_dt=start_dt, end_dt=end_dt)
-    xcp_btc_price = mps_xcp_btc['market_price'] if mps_xcp_btc else None # == XCP/BTC
-    btc_xcp_price = calc_inverse(mps_xcp_btc['market_price']) if mps_xcp_btc else None #BTC/XCP
+    xcp_btc_price = mps_xcp_btc['market_price'] if mps_xcp_btc else None # == cSFR/SFR
+    btc_xcp_price = calc_inverse(mps_xcp_btc['market_price']) if mps_xcp_btc else None #SFR/cSFR
     return mps_xcp_btc, xcp_btc_price, btc_xcp_price
 
 def get_asset_info(asset, at_dt=None):
@@ -104,7 +104,7 @@ def get_asset_info(asset, at_dt=None):
         if asset_info is None: return None
         assert asset_info['_at_block_time'] <= at_dt
       
-    #modify some of the properties of the returned asset_info for BTC and XCP
+    #modify some of the properties of the returned asset_info for SFR and cSFR
     if asset == config.BTC:
         if at_dt:
             start_block_index, end_block_index = util.get_block_indexes_for_dates(end_dt=at_dt)
@@ -131,7 +131,7 @@ def get_xcp_btc_price_info(asset, mps_xcp_btc, xcp_btc_price, btc_xcp_price, wit
         price_summary_in_btc = get_market_price_summary(asset, config.BTC,
             with_last_trades=with_last_trades, start_dt=start_dt, end_dt=end_dt)
 
-        #aggregated (averaged) price (expressed as XCP) for the asset on both the XCP and BTC markets
+        #aggregated (averaged) price (expressed as cSFR) for the asset on both the cSFR and SFR markets
         if price_summary_in_xcp: # no trade data
             price_in_xcp = price_summary_in_xcp['market_price']
             if xcp_btc_price:
@@ -183,7 +183,7 @@ def calc_market_cap(asset_info, price_in_xcp, price_in_btc):
 
 def compile_summary_market_info(asset, mps_xcp_btc, xcp_btc_price, btc_xcp_price):        
     """Returns information related to capitalization, volume, etc for the supplied asset(s)
-    NOTE: in_btc == base asset is BTC, in_xcp == base asset is XCP
+    NOTE: in_btc == base asset is SFR, in_xcp == base asset is cSFR
     @param assets: A list of one or more assets
     """
     asset_info = get_asset_info(asset)
@@ -386,7 +386,7 @@ def compile_7d_market_info(asset):
     }
 
 def compile_asset_pair_market_info():
-    """Compiles the pair-level statistics that show on the View Prices page of csfrwallet, for instance"""
+    """Compiles the pair-level statistics that show on the View Prices page of counterwallet, for instance"""
     #loop through all open orders, and compile a listing of pairs, with a count of open orders for each pair
     mongo_db = config.mongo_db
     end_dt = datetime.datetime.utcnow()

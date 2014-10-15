@@ -48,7 +48,7 @@ def expire_stale_btc_open_order_records():
     
     num_stale_records = config.mongo_db.btc_open_orders.find({'when_created': {'$lt': min_when_created}}).count()
     mongo_db.btc_open_orders.remove({'when_created': {'$lt': min_when_created}})
-    if num_stale_records: logging.warn("REMOVED %i stale BTC open order objects" % num_stale_records)
+    if num_stale_records: logging.warn("REMOVED %i stale SFR open order objects" % num_stale_records)
     
     #call again in 1 day
     gevent.spawn_later(86400, expire_stale_btc_open_order_records)
