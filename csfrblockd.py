@@ -115,16 +115,16 @@ if __name__ == '__main__':
     # THINGS WE CONNECT TO
 
     # csfrd RPC host
-    if args.counterpartyd_rpc_connect:
-        config.COUNTERPARTYD_RPC_CONNECT = args.counterpartyd_rpc_connect
+    if args.csfrd_rpc_connect:
+        config.COUNTERPARTYD_RPC_CONNECT = args.csfrd_rpc_connect
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-connect') and configfile.get('Default', 'csfrd-rpc-connect'):
         config.COUNTERPARTYD_RPC_CONNECT = configfile.get('Default', 'csfrd-rpc-connect')
     else:
         config.COUNTERPARTYD_RPC_CONNECT = 'localhost'
 
     # csfrd RPC port
-    if args.counterpartyd_rpc_port:
-        config.COUNTERPARTYD_RPC_PORT = args.counterpartyd_rpc_port
+    if args.csfrd_rpc_port:
+        config.COUNTERPARTYD_RPC_PORT = args.csfrd_rpc_port
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-port') and configfile.get('Default', 'csfrd-rpc-port'):
         config.COUNTERPARTYD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
     else:
@@ -139,16 +139,16 @@ if __name__ == '__main__':
         raise Exception("Please specific a valid port number csfrd-rpc-port configuration parameter")
             
     # counterpartyd RPC user
-    if args.counterpartyd_rpc_user:
-        config.COUNTERPARTYD_RPC_USER = args.counterpartyd_rpc_user
+    if args.csfrd_rpc_user:
+        config.COUNTERPARTYD_RPC_USER = args.csfrd_rpc_user
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-user') and configfile.get('Default', 'csfrd-rpc-user'):
         config.COUNTERPARTYD_RPC_USER = configfile.get('Default', 'csfrd-rpc-user')
     else:
         config.COUNTERPARTYD_RPC_USER = 'rpcuser'
 
     # counterpartyd RPC password
-    if args.counterpartyd_rpc_password:
-        config.COUNTERPARTYD_RPC_PASSWORD = args.counterpartyd_rpc_password
+    if args.csfrd_rpc_password:
+        config.COUNTERPARTYD_RPC_PASSWORD = args.csfrd_rpc_password
     elif has_config and configfile.has_option('Default', 'csfrd-rpc-password') and configfile.get('Default', 'csfrd-rpc-password'):
         config.COUNTERPARTYD_RPC_PASSWORD = configfile.get('Default', 'csfrd-rpc-password')
     else:
