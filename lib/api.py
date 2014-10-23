@@ -1583,16 +1583,16 @@ def serve_api(mongo_db, redis_client):
             response_code = 500
         
         result = {
-            'counterpartyd': 'OK' if cpd_result_valid else 'NOT OK',
-            'counterblockd': 'OK' if cbd_result_valid else 'NOT OK',
-            'counterblockd_error': cbd_result_error_code,
-            'counterpartyd_ver': '%s.%s.%s' % (
+            'csfrd': 'OK' if cpd_result_valid else 'NOT OK',
+            'csfrblockd': 'OK' if cbd_result_valid else 'NOT OK',
+            'csfrblockd_error': cbd_result_error_code,
+            'csfrd_ver': '%s.%s.%s' % (
                 cpd_status['version_major'], cpd_status['version_minor'], cpd_status['version_revision']) if cpd_result_valid else '?',
-            'counterblockd_ver': config.VERSION,
-            'counterpartyd_last_block': cpd_status['last_block'] if cpd_result_valid else '?',
-            'counterpartyd_last_message_index': cpd_status['last_message_index'] if cpd_result_valid else '?',
-            'counterpartyd_check_elapsed': cpd_e - cpd_s,
-            'counterblockd_check_elapsed': cbd_e - cbd_s,
+            'csfrblockd_ver': config.VERSION,
+            'csfrd_last_block': cpd_status['last_block'] if cpd_result_valid else '?',
+            'csfrd_last_message_index': cpd_status['last_message_index'] if cpd_result_valid else '?',
+            'csfrd_check_elapsed': cpd_e - cpd_s,
+            'csfrblockd_check_elapsed': cbd_e - cbd_s,
             'local_online_users': len(siofeeds.onlineClients),
         }
         return flask.Response(json.dumps(result), response_code, mimetype='application/json')
