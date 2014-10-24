@@ -129,9 +129,9 @@ if __name__ == '__main__':
         config.COUNTERPARTYD_RPC_PORT = configfile.get('Default', 'csfrd-rpc-port')
     else:
         if config.TESTNET:
-            config.COUNTERPARTYD_RPC_PORT = 14000
+            config.COUNTERPARTYD_RPC_PORT = 49710
         else:
-            config.COUNTERPARTYD_RPC_PORT = 4000
+            config.COUNTERPARTYD_RPC_PORT = 39710
     try:
         config.COUNTERPARTYD_RPC_PORT = int(config.COUNTERPARTYD_RPC_PORT)
         assert int(config.COUNTERPARTYD_RPC_PORT) > 1 and int(config.COUNTERPARTYD_RPC_PORT) < 65535
